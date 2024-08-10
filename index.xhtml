@@ -5,7 +5,7 @@
     <title>Wikispeed</title>
     <link rel="stylesheet" href="wikispeed.css" />
     <!--Latest socket.io version doesn't work, see https://phabricator.wikimedia.org/T68232 -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.17/socket.io.min.js"></script>
+    <!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.17/socket.io.min.js"></script> -->
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/highcharts-more.js"></script><!-- Needed for the logarithmic gauge charts -->
 </head>
@@ -27,10 +27,9 @@
     <hr/>
 
     <div class="gauge" id="global" title="All Wikipedias"></div>
-    <!-- List of dbnames: https://noc.wikimedia.org/conf/highlight.php?file=all.dblist -->
-    <!-- Edit stats from: http://stats.wikimedia.org/EN/TablesDatabaseEdits.htm (100k+) -->
-    <!-- Size stats from: https://meta.wikimedia.org/wiki/List_of_Wikipedias (100k+) -->
-    <div class="gauge" id="arwiki" title="Arabic" data-lang="العربية"></div>
+    <!-- Top 10 Wikipedias, as seen in https://wikipedia.org as of Aug 2024, sorted alphabetically -->
+    <!-- List of dbnames: https://noc.wikimedia.org/conf/highlight.php?file=dblists/all.dblist -->
+    <!-- <div class="gauge" id="arwiki" title="Arabic" data-lang="العربية"></div>
     <div class="gauge" id="zhwiki" title="Chinese" data-lang="中文"></div>
     <div class="gauge" id="nlwiki" title="Dutch" data-lang="Nederlands"></div>
     <div class="gauge" id="enwiki" title="English" data-lang="English"></div>
@@ -45,15 +44,30 @@
     <div class="gauge" id="ruwiki" title="Russian" data-lang="Русский"></div>
     <div class="gauge" id="eswiki" title="Spanish" data-lang="Español"></div>
     <div class="gauge" id="svwiki" title="Swedish" data-lang="Svenska"></div>
-    <div class="gauge" id="ukwiki" title="Ukrainian" data-lang="Українська"></div>
+    <div class="gauge" id="ukwiki" title="Ukrainian" data-lang="Українська"></div> -->
+
+
+    <div class="gauge" id="dewiki" title="German" data-lang="Deutsch"></div>
+    <div class="gauge" id="enwiki" title="English" data-lang="English"></div>
+    <div class="gauge" id="eswiki" title="Spanish" data-lang="Español"></div>
+    <div class="gauge" id="fawiki" title="Farsi" data-lang="فارسی"></div>
+    <div class="gauge" id="frwiki" title="French" data-lang="Français"></div>
+    <div class="gauge" id="itwiki" title="Italian" data-lang="Italiano"></div>
+    <div class="gauge" id="jawiki" title="Japanese" data-lang="日本語"></div>
+    <div class="gauge" id="ptwiki" title="Portuguese" data-lang="Português"></div>
+    <div class="gauge" id="ruwiki" title="Russian" data-lang="Русский"></div>
+    <div class="gauge" id="zhwiki" title="Chinese" data-lang="中文"></div>
+
 
     <hr/><!-- Special projects (multilingual) -->
 
-    <div class="gauge" id="wikidatawiki" title="Wikidata"></div>
-    <div class="gauge" id="mediawikiwiki" title="MediaWiki"></div>
-    <div class="gauge" id="metawiki" title="Meta"></div>
-    <div class="gauge" id="commonswiki" title="Commons"></div>
-
+    <div id="special-projects">
+        <div class="gauge" id="wikidatawiki" title="Wikidata"></div>
+        <div class="gauge" id="mediawikiwiki" title="MediaWiki"></div>
+        <div class="gauge" id="metawiki" title="Meta"></div>
+        <div class="gauge" id="commonswiki" title="Commons"></div>
+    </div>
     <script src="wikispeed.js"></script>
+    <!-- <script src="eventstreams.js"></script> -->
 </body>
 </html>

@@ -1,13 +1,13 @@
-var editsFeed = io.connect('stream.wikimedia.org/rc');
+// var editsFeed = io.connect('stream.wikimedia.org/rc');
 var gaugeNodes = document.getElementsByClassName('gauge');
 var beginTimestamp = Date.now()/1000;
 var counterPeriod = 60; // 60 seconds --> we'll displays edits per minute
 var editsInLastMinute = {}; // List of arrays containing the timestamps of recent edits per wiki
 var gaugeCharts = {}; // List of charts
 
-//##########################################################################
+//############################################################
 //                              SET UP CHARTS
-//##########################################################################
+//############################################################
 for(var i=0; i<gaugeNodes.length; i++) // for(elem of gaugeNodes) doesn't seem to work on Chrome...
 {
     // Initialize arrays, so we can push to them
@@ -43,16 +43,17 @@ for(var i=0; i<gaugeNodes.length; i++) // for(elem of gaugeNodes) doesn't seem t
             max: 600*scaleRatio,
             minorTickColor: '#777',
             minorTickInterval: 0.1,
-            tickPositions: [Math.log(1*scaleRatio)/Math.log(10),
-                            Math.log(3*scaleRatio)/Math.log(10),
-                            Math.log(6*scaleRatio)/Math.log(10),
-                            Math.log(10*scaleRatio)/Math.log(10),
-                            Math.log(30*scaleRatio)/Math.log(10),
-                            Math.log(60*scaleRatio)/Math.log(10),
-                            Math.log(100*scaleRatio)/Math.log(10),
-                            Math.log(300*scaleRatio)/Math.log(10),
-                            Math.log(600*scaleRatio)/Math.log(10)
-                           ],
+            tickPositions: [
+                Math.log(1*scaleRatio)/Math.log(10),
+                Math.log(3*scaleRatio)/Math.log(10),
+                Math.log(6*scaleRatio)/Math.log(10),
+                Math.log(10*scaleRatio)/Math.log(10),
+                Math.log(30*scaleRatio)/Math.log(10),
+                Math.log(60*scaleRatio)/Math.log(10),
+                Math.log(100*scaleRatio)/Math.log(10),
+                Math.log(300*scaleRatio)/Math.log(10),
+                Math.log(600*scaleRatio)/Math.log(10)
+            ],
             minorTickLength: 9+extraSize,
             tickLength: 9+extraSize,
             endOnTick: true,
@@ -118,38 +119,52 @@ for(var i=0; i<gaugeNodes.length; i++) // for(elem of gaugeNodes) doesn't seem t
     });
 }
 
-//##############################################################################
-//                       SET UP WEBSOCKET
-//##############################################################################
+//############################################################
+//                       SET UP EVENT STREAM
+//############################################################
 
-editsFeed.on('connect', function() {
-    // Subscribe to one or more wikis
-    // See https://wikitech.wikimedia.org/wiki/RCStream for more details
-    editsFeed.emit('subscribe', '*');
-    console.log('WebSocket info: user connected');
-});
+const editsFeed = new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
 
-editsFeed.on('change', function( changeData ) {
-    // See https://www.mediawiki.org/wiki/Manual:RCFeed#Properties
-    // Use if(changeData.type == 'edit') to count only edits, rather than all activity
-    if ( editsInLastMinute[ changeData.wiki ] !== undefined )
-    {
-        editsInLastMinute[ changeData.wiki ].push(changeData.timestamp);
+editsFeed.onopen = () => {
+    console.info('Connected to the Wikimedia EventStreams service.');
+};
+
+// Process the stream event.
+// See the response schema for the /recentchange endpoint at
+// https://stream.wikimedia.org/?doc#/streams/get_v2_stream_recentchange
+editsFeed.onmessage = (event) => {
+    // Parse the event.data JSON string into a JavaScript object
+    const eventData = JSON.parse(event.data);
+
+    // Discard all debug events (synthetic events sent at regular intervals
+    // to confirm that the streams are working even when there are no real events)
+    if (eventData.meta?.domain === 'canary') {
+        console.log('Discarding canary event');
+        return;
     }
-    if ( changeData.server_name.match("wikipedia") && editsInLastMinute[ "global" ] !== undefined )
+
+    // Use if(eventData.type == 'edit') to count only edits, rather than all activity
+    if ( editsInLastMinute[ eventData.wiki ] !== undefined )
     {
-        editsInLastMinute["global"].push(changeData.timestamp);
+        editsInLastMinute[ eventData.wiki ].push(eventData.timestamp);
     }
-    //console.log(editsInLastMinute.length)
-});
+    if ( eventData.server_name.match("wikipedia") && editsInLastMinute[ "global" ] !== undefined )
+    {
+        editsInLastMinute["global"].push(eventData.timestamp);
+    }
+};
 
-editsFeed.on('error', function( errorData ) {
-    console.log( "WebSocket error: " + JSON.stringify(errorData) );
-});
+// editsFeed.on('error', function( errorData ) {
+//     console.log( "WebSocket error: " + JSON.stringify(errorData) );
+// });
 
-//##############################################################################
+editsFeed.onerror = (event) => {
+    console.error('Encountered error', event);
+};
+
+//############################################################
 //                       SET UP UPDATING ROUTINE
-//##############################################################################
+//############################################################
 
 function updateCounters(){
     var now = Date.now() / 1000;
@@ -186,10 +201,11 @@ function updateCounters(){
 // Start the update loop
 var loopID = setInterval( updateCounters, 1000);
 
-//##########################################################################
+//############################################################
 //                       CLEAN UP BEFORE EXITING
-//##########################################################################
+//############################################################
 
 window.onbeforeunload = function(){
-    editsFeed.socket.disconnect(); clearInterval(loopID);
+    editsFeed.close();
+    clearInterval(loopID);
 };

@@ -1,0 +1,24 @@
+name: Run htmlhint
+
+on:
+  push:
+    branches:
+      - gh-pages
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: 'stable'
+
+    - name: Install dependencies
+      run: npm install htmlhint
+
+    - name: Run HTMLHint
+      run: htmlhint --config htmlhint.conf index.xhtml

@@ -37,7 +37,7 @@ hr
 
 .gauge
 {
-    float: left;
+    display: inline-block;
     width: 15rem;
     height: 15rem;
     margin-bottom: 1rem;
@@ -46,6 +46,21 @@ hr
 /* Twice the size of the small ones, for proper wrapping / alignment */
 .gauge#global
 {
+    float: left;
     width: 30rem;
     height: 31rem;
+}
+
+#special-projects .gauge
+{
+    float: unset;
+    display: inline-block;
+}
+
+#special-projects
+{
+    margin-inline: auto;
+    margin-block: auto;
+    margin: 0 auto;
+    width: fit-content;
 }
