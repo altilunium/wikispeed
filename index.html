@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Wikispeed</title>
+    <link rel="stylesheet" href="wikispeed.css" />
+    <!--Latest socket.io version doesn't work, see https://phabricator.wikimedia.org/T68232 -->
+    <!-- <script src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.17/socket.io.min.js"></script> -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script><!-- Needed for the logarithmic gauge charts -->
+</head>
+<body>
+
+
+    <div id="nya" >
+        <center>
+
+    </center>
+        <br>
+        <br>
+        <!--
+        <div class="gauge" id="dewiki" title="German" data-lang="Deutsch"></div>
+        <div class="gauge" id="enwiki" title="English" data-lang="English"></div>
+        <div class="gauge" id="eswiki" title="Spanish" data-lang="Español"></div>
+        <div class="gauge" id="idwiki" title="Indonesia" data-lang="Bahasa Indonesia"></div>
+        <div class="gauge" id="frwiki" title="French" data-lang="Français"></div>
+        <div class="gauge" id="itwiki" title="Italian" data-lang="Italiano"></div>
+        <div class="gauge" id="jawiki" title="Japanese" data-lang="日本語"></div>
+        <div class="gauge" id="ptwiki" title="Portuguese" data-lang="Português"></div>
+        <div class="gauge" id="ruwiki" title="Russian" data-lang="Русский"></div>
+        <div class="gauge" id="zhwiki" title="Chinese" data-lang="中文"></div>
+        -->
+    
+    <!--
+    <div class="gauge" id="mediawikiwiki" title="MediaWiki"></div>
+    <div class="gauge" id="metawiki" title="Meta"></div>
+    <div class="gauge" id="commonswiki" title="Commons"></div>
+-->
+    </div>
+
+
+    <hr/><!-- Special projects (multilingual) -->
+
+
+     <table id="sortedTable">
+    <thead>
+      <tr>
+        <th>wiki</th>
+        <th>edit/min</th>
+        <th>page</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be injected here -->
+    </tbody>
+  </table>
+
+   
+    <script src="wikispeed.js"></script>
+    <!-- <script src="eventstreams.js"></script> -->
+</body>
+</html>
