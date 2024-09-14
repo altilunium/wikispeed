@@ -1,11 +1,13 @@
 # WikiSpeed
 
-[![validation][validation-img]][validation-url]
-
-[validation-url]: https://validator.w3.org/nu/?doc=http%3A%2F%2Fwaldyrious.net%2Fwikispeed%2F
-[validation-img]: https://img.shields.io/badge/w3c-valid_xhtml5-blue.svg
-
 A visualization of the rate of edits to Wikipedia in various languages.
+
+
+
+https://github.com/user-attachments/assets/f62c38e2-d6c4-44ef-ba8f-fc8562b72882
+
+
+
 
 This is essentially a replica of the original **[Wikipulse](https://web.archive.org/web/20220413111810/http://wikipulse.herokuapp.com)** (now defunct),
 created in 2011 by [Ed Summers](http://mith.umd.edu/people/person/ed-summers/),
