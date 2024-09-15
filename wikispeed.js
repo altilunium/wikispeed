@@ -7,7 +7,11 @@ var gaugeCharts = {}; // List of charts
 var rr = {}
 var la = {}
 var flag = {}
-
+var user = {}
+var isUser = true;
+var activeUser = {}
+var userDB = {}
+var ex_activeUser = {}
 
 function getFirstSubdomain(url) {
     // Create an anchor element to easily extract different parts of the URL
@@ -31,6 +35,10 @@ function summon(id){
         newDiv.className = "gauge";
         newDiv.id = id;
         newDiv.setAttribute("title", id); // Set the title to the id or customize if needed
+        theSub = la[id]
+        if (isUser) {
+            theSub = user[id]
+        }
         
         // Append the new div to the parent div
         parentDiv.appendChild(newDiv);
@@ -46,7 +54,7 @@ function summon(id){
             }
         },
         subtitle: {
-            text: la[id]
+            text: theSub
         },
         tooltip: {
             enabled: false
@@ -297,8 +305,8 @@ editsFeed.onmessage = (event) => {
         return;
     }
 
-    console.log(eventData)
-    console.log(getFirstSubdomain(eventData.server_name))
+    //console.log(eventData)
+    //console.log(getFirstSubdomain(eventData.server_name))
 
     flag[eventData.wiki] = getFirstSubdomain(eventData.server_name)
 
@@ -306,6 +314,7 @@ editsFeed.onmessage = (event) => {
     var existingElement = document.getElementById(eventData.wiki);
 
     la[eventData.wiki] = eventData.title
+    user[eventData.wiki] = eventData.user
 
 
     if (!existingElement) {
@@ -332,6 +341,15 @@ editsFeed.onmessage = (event) => {
 
 
     }
+
+
+    if (activeUser[eventData.wiki] == undefined){
+        activeUser[eventData.wiki] = new Set();
+    }
+
+    activeUser[eventData.wiki].add(eventData.user)
+    userDB[eventData.user] = eventData.timestamp
+
    
 
     // Use if(eventData.type == 'edit') to count only edits, rather than all activity
@@ -340,6 +358,7 @@ editsFeed.onmessage = (event) => {
         editsInLastMinute[ eventData.wiki ].push(eventData.timestamp);
     }
     else {
+        editsInLastMinute[ eventData.wiki ] = []
         console.log(eventData.wiki)
     }
 
@@ -349,8 +368,8 @@ editsFeed.onmessage = (event) => {
     {
         editsInLastMinute["global"].push(eventData.timestamp);
         gaugeCharts["global"].subtitle.update({
-        text:eventData.wiki+" "+eventData.title
-    })
+            text:eventData.wiki+" "+eventData.title
+        })
     }
 
 
@@ -381,9 +400,20 @@ function updateCounters(){
             // Less than `counterPeriod` seconds passed since we started counting,
             // so we'll extrapolate from the data we've got so far.
             currentCount = Math.round(editsInLastMinute[id].length * counterPeriod / elapsed);
+            ex_activeUser[id] =  Math.round(activeUser[id].size * counterPeriod / elapsed);
         }
         else
         {
+            //activeUser[id].clear()
+
+            activeUser[id].forEach(value => {
+              if (userDB[value] > (now - counterPeriod)){
+                activeUser[id].delete(value)
+              }
+            });
+
+
+
             // Remove old data
             editsInLastMinute[id] = editsInLastMinute[id].filter( function (editTimestamp) {
                 return editTimestamp > (now - counterPeriod);
@@ -424,7 +454,7 @@ window.onbeforeunload = function(){
       let sortedData = Object.entries(rr).sort((a, b) => b[1] - a[1]);
 
       // Select the table body
-      let tbody = document.querySelector("#sortedTable tbody");
+      let tbody = document.querySelector("#sortedTable");
 
       // Clear existing rows
       tbody.innerHTML = "";
@@ -435,8 +465,12 @@ window.onbeforeunload = function(){
         if (value > 1){
             summon(key)
         }
-        let row = `<tr><td class='emoji'>${flag[key]} ${key}</td><td>${value}</td><td id="a${key}">${nyaa}</td></tr>`;
-        tbody.innerHTML += row;
+        else if (key !== "wikidatawiki" && key !== "commonswiki") {
+        
+            let row = `<div class='item'><div class='emoji'>${flag[key]} ${key}</div></div>`;
+            tbody.innerHTML += row;
+        }
+        
       });
     }
 
@@ -456,9 +490,14 @@ setInterval(() => {
        
     var gaugeNodes = document.getElementsByClassName('gauge');
 
+
     for(var i=0; i<gaugeNodes.length; i++) {
+         nyaa = la[gaugeNodes[i].id]
+    if (isUser) {
+        nyaa = "<b>[" +ex_activeUser[gaugeNodes[i].id] +"]</b> " + user[gaugeNodes[i].id]
+    }
         gaugeCharts[gaugeNodes[i].id].subtitle.update({
-        text:la[gaugeNodes[i].id]
+        text:nyaa
     })
 
     }
@@ -493,3 +532,22 @@ function sortDivs() {
         console.error('An error occurred while sorting divs:', error.message);
       }
     }
+
+document.addEventListener('keydown', function(event) {
+  if (event.ctrlKey && event.key === '.') {
+    console.log('CTRL + . detected');
+    // Add your code here to handle the event
+    switchh()
+  }
+});
+
+function switchh(){
+    isUser = !isUser
+    var a = document.getElementById("suicchi")
+    if (isUser){
+        a.innerHTML = 'Config : <a href="javascript:void(0)" onclick="switchh()">page</a> | <b>[active users/min] user</b>'
+    }
+    else {
+        a.innerHTML = 'Config : <b>page</b> | <a href="javascript:void(0)" onclick="switchh()">[active users/min] user</a>'
+    }
+}

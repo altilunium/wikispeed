@@ -729,7 +729,9 @@ var defaults = {
   zmi: 'MY',
   zu: 'ZA',
   zza: 'TR',
-  nia: 'ID'
+  nia: 'ID', //nias
+  azb: 'AZ', //south azerbaijan
+  sh: 'SR' //serbo-croatian
 };
 // --- DEFAULTS END ---
 

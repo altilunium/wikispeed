@@ -18,6 +18,7 @@
 
     <h2>Wikispeed Leaderboard</h2>
     <p>A visualization of the rate of edits (edits/min) to Wikipedia in various languages.</p>
+    <p id="suicchi">Config : <a href="javascript:void(0)" onclick="switchh()">article</a> | <b> [active users/min] user</b> </p>
     <br>
 
     
@@ -51,18 +52,9 @@
     <hr/><!-- Special projects (multilingual) -->
 
 
-     <table id="sortedTable">
-    <thead>
-      <tr>
-        <th>wiki</th>
-        <th>edit/min</th>
-        <th>page</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Data will be injected here -->
-    </tbody>
-  </table>
+    <p>Recently active wikis :</p>  
+     <div id="sortedTable">
+     </div>
 
     <script src="emoji.js"></script>
     <script src="wikispeed.js"></script>
