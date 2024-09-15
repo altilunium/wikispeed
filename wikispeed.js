@@ -6,7 +6,14 @@ var editsInLastMinute = {}; // List of arrays containing the timestamps of recen
 var gaugeCharts = {}; // List of charts
 var rr = {}
 var la = {}
+var flag = {}
 
+
+function getFirstSubdomain(url) {
+    // Create an anchor element to easily extract different parts of the URL
+
+    return emojii(url.split('.')[0]);
+}
 
 
 function summon(id){
@@ -33,7 +40,10 @@ function summon(id){
             renderTo: id
         },
         title: {
-            text: id
+            text: flag[id]+" "+id,
+            style: {
+                fontFamily :"Noto Color Emoji, sans-serif"
+            }
         },
         subtitle: {
             text: la[id]
@@ -287,6 +297,10 @@ editsFeed.onmessage = (event) => {
         return;
     }
 
+    console.log(eventData)
+    console.log(getFirstSubdomain(eventData.server_name))
+
+    flag[eventData.wiki] = getFirstSubdomain(eventData.server_name)
 
     var parentDiv = document.getElementById("nya");
     var existingElement = document.getElementById(eventData.wiki);
@@ -421,7 +435,7 @@ window.onbeforeunload = function(){
         if (value > 1){
             summon(key)
         }
-        let row = `<tr><td>${key}</td><td>${value}</td><td id="a${key}">${nyaa}</td></tr>`;
+        let row = `<tr><td class='emoji'>${flag[key]} ${key}</td><td>${value}</td><td id="a${key}">${nyaa}</td></tr>`;
         tbody.innerHTML += row;
       });
     }
@@ -475,7 +489,6 @@ function sortDivs() {
           parent.appendChild(div);
         });
 
-        console.log('Divs sorted successfully.');
       } catch (error) {
         console.error('An error occurred while sorting divs:', error.message);
       }
