@@ -11,6 +11,25 @@ body
             flex-wrap:wrap;
 }
 
+#nya {
+    display: flex;
+    flex-direction: row;
+    flex-wrap:wrap;
+}
+
+
+#infos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 80%;
+    flex-wrap:wrap;
+}
+
+#infos div{
+    margin:4px 0px;
+}
+
 .item {
      display: flex;
     align-items: center;

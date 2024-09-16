@@ -12,12 +12,17 @@ var isUser = true;
 var activeUser = {}
 var userDB = {}
 var ex_activeUser = {}
+var isInfoMode = false;
+var currentInfo = ""
+var lastTenLog = {}
 
 function getFirstSubdomain(url) {
     // Create an anchor element to easily extract different parts of the URL
 
     return emojii(url.split('.')[0]);
 }
+
+
 
 
 function summon(id){
@@ -32,6 +37,14 @@ function summon(id){
     var existingElement = document.getElementById(id);
     if (!existingElement) {
         var newDiv = document.createElement("div");
+
+
+        newDiv.addEventListener('click', () => {
+        // Pass the element's DOM id as a parameter to your function
+        showStat(id);
+      });
+
+
         newDiv.className = "gauge";
         newDiv.id = id;
         newDiv.setAttribute("title", id); // Set the title to the id or customize if needed
@@ -152,6 +165,7 @@ function summon(id){
 
 
 function destroy(){
+    
    var gaugeNodes = document.getElementsByClassName('gauge');
 
     Array.from(gaugeNodes).forEach(function(node) {
@@ -162,6 +176,8 @@ function destroy(){
         }      
       }
 });
+
+
 
 }
 
@@ -285,7 +301,7 @@ for(var i=0; i<gaugeNodes.length; i++) // for(elem of gaugeNodes) doesn't seem t
 //                       SET UP EVENT STREAM
 //############################################################
 
-const editsFeed = new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
+var editsFeed = new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
 
 editsFeed.onopen = () => {
     console.info('Connected to the Wikimedia EventStreams service.');
@@ -295,71 +311,50 @@ editsFeed.onopen = () => {
 // See the response schema for the /recentchange endpoint at
 // https://stream.wikimedia.org/?doc#/streams/get_v2_stream_recentchange
 editsFeed.onmessage = (event) => {
-    // Parse the event.data JSON string into a JavaScript object
+
     const eventData = JSON.parse(event.data);
 
-    // Discard all debug events (synthetic events sent at regular intervals
-    // to confirm that the streams are working even when there are no real events)
     if (eventData.meta?.domain === 'canary') {
         console.log('Discarding canary event');
         return;
     }
 
-    //console.log(eventData)
-    //console.log(getFirstSubdomain(eventData.server_name))
 
     flag[eventData.wiki] = getFirstSubdomain(eventData.server_name)
-
-    var parentDiv = document.getElementById("nya");
-    var existingElement = document.getElementById(eventData.wiki);
-
     la[eventData.wiki] = eventData.title
     user[eventData.wiki] = eventData.user
-
-
-    if (!existingElement) {
-        editsInLastMinute[ eventData.wiki ] = [];
-    }
-    else{
     
-
-    /*
-    gaugeCharts[eventData.wiki].subtitle.update({
-        text:eventData.title
-    })
-    */
-
- 
-
- 
-    if (eventData.wiki =="wikidatawiki"){
-
-        gaugeCharts[eventData.wiki].subtitle.update({
-        text:eventData.parsedcomment
-    })
-    }
-
-
-    }
-
-
-    if (activeUser[eventData.wiki] == undefined){
-        activeUser[eventData.wiki] = new Set();
-    }
-
-    activeUser[eventData.wiki].add(eventData.user)
-    userDB[eventData.user] = eventData.timestamp
 
    
 
-    // Use if(eventData.type == 'edit') to count only edits, rather than all activity
+    if (editsInLastMinute[eventData.wiki] == undefined) {
+        editsInLastMinute[ eventData.wiki ] = [];
+    }
+     
+    if (activeUser[eventData.wiki] == undefined){
+        activeUser[eventData.wiki] = new Set();
+    }
+    activeUser[eventData.wiki].add(eventData.user)
+    userDB[eventData.user] = eventData.timestamp
+    
+
+   
     if ( editsInLastMinute[ eventData.wiki ] !== undefined )
     {
         editsInLastMinute[ eventData.wiki ].push(eventData.timestamp);
     }
-    else {
-        editsInLastMinute[ eventData.wiki ] = []
-        console.log(eventData.wiki)
+   
+
+    if (lastTenLog[eventData.wiki] == undefined) {
+        lastTenLog[ eventData.wiki ] = []
+    }
+
+
+    lastTenLog[eventData.wiki].push(eventData)
+
+    while (lastTenLog[eventData.wiki].length > 10) {
+    // Remove the oldest element (the first element)
+        lastTenLog[eventData.wiki].shift();
     }
 
 
@@ -373,16 +368,79 @@ editsFeed.onmessage = (event) => {
     }
 
 
+    if (isInfoMode) {
+        if (eventData.wiki == currentInfo) {
+
+            /*
+            var str = ""
+            str = "<b>"+eventData.user +"</b> " +  eventData.type + " " + "<a target='_blank' href='"+eventData.notify_url+"'>" +eventData.title + "</a>"
+            console.log(eventData)
+            console.log(str)
+
+            let tbody = document.querySelector("#infos");
+            var newDiv = document.createElement("div");
+            newDiv.innerHTML = str
+            //tbody.appendChild(newDiv);
+            tbody.insertBefore(newDiv,tbody.firstChild);
+
+            if (tbody.children.length > 10) {
+            // While the number of children is greater than 25, remove the last child
+            while (tbody.children.length > 10) {
+            tbody.removeChild(tbody.lastChild);
+            }
+            }
+            */
+
+
+        }
+    }
+
+
 
 };
 
-// editsFeed.on('error', function( errorData ) {
-//     console.log( "WebSocket error: " + JSON.stringify(errorData) );
-// });
 
 editsFeed.onerror = (event) => {
     console.error('Encountered error', event);
 };
+
+
+function showInfoz(id){
+
+    if (lastTenLog[id].length == 0){
+        return
+    }
+    var eventData = lastTenLog[id].shift()
+    var str = ""
+    str = "<b>"+eventData.user +"</b> " +  eventData.type + " " + "<a target='_blank' href='"+eventData.notify_url+"'>" +eventData.title + "</a>"
+    if (eventData.type == "log"){
+        str = "<b>"+eventData.user +"</b> " +  eventData.log_action + " " + "<a target='_blank' href='"+eventData.title_url+"'>" +eventData.title + "</a>"
+    }
+
+
+
+
+    let tbody = document.querySelector("#infos");
+    var newDiv = document.createElement("div");
+    newDiv.innerHTML = str
+    //tbody.appendChild(newDiv);
+    tbody.insertBefore(newDiv,tbody.firstChild);
+
+    if (tbody.children.length > 10) {
+    // While the number of children is greater than 25, remove the last child
+    while (tbody.children.length > 10) {
+    tbody.removeChild(tbody.lastChild);
+    }
+    }
+
+}
+
+
+
+
+
+
+
 
 //############################################################
 //                       SET UP UPDATING ROUTINE
@@ -412,8 +470,6 @@ function updateCounters(){
               }
             });
 
-
-
             // Remove old data
             editsInLastMinute[id] = editsInLastMinute[id].filter( function (editTimestamp) {
                 return editTimestamp > (now - counterPeriod);
@@ -438,9 +494,10 @@ function updateCounters(){
 // Start the update loop
 var loopID = setInterval( updateCounters, 1000);
 
-//############################################################
-//                       CLEAN UP BEFORE EXITING
-//############################################################
+
+
+
+
 
 window.onbeforeunload = function(){
     editsFeed.close();
@@ -449,7 +506,8 @@ window.onbeforeunload = function(){
 
 
  function sortAndDisplay() {
-       
+
+
       // Convert the object to an array of [key, value] pairs and sort by value (descending order)
       let sortedData = Object.entries(rr).sort((a, b) => b[1] - a[1]);
 
@@ -459,6 +517,8 @@ window.onbeforeunload = function(){
       // Clear existing rows
       tbody.innerHTML = "";
 
+
+
       // Populate the table with sorted data
       sortedData.forEach(([key, value]) => {
         nyaa = la[key]
@@ -466,7 +526,7 @@ window.onbeforeunload = function(){
             summon(key)
         }
         else if (key !== "wikidatawiki" && key !== "commonswiki") {
-        
+
             let row = `<div class='item'><div class='emoji'>${flag[key]} ${key}</div></div>`;
             tbody.innerHTML += row;
         }
@@ -476,19 +536,71 @@ window.onbeforeunload = function(){
 
     sortAndDisplay();
 
-    // Refresh the table every 10 seconds
-    setInterval(() => {
-      // You can update the 'data' object here if needed
-       destroy()      
+
+function gaugeUpdater() {
+
+     destroy()      
       sortAndDisplay();
       sortDivs();
-    }, 100);
+}
 
 
-setInterval(() => {
-      // You can update the 'data' object here if needed
-       
-    var gaugeNodes = document.getElementsByClassName('gauge');
+
+
+var loopSubtitle = setInterval(subtitleUpdater, 1000);
+var loopGauge = setInterval(gaugeUpdater, 500);
+var loopInfoz 
+
+function backToHome(){
+
+    let tbody = document.querySelector("#nya");
+    tbody.innerHTML = "";
+    loopGauge = setInterval(gaugeUpdater, 500);
+    isInfoMode = false;
+    currentInfo = ""
+
+
+
+
+ let inp = document.querySelector("#suicchi");
+     inp.innerHTML = ""
+    
+}
+
+
+function showStat(id){
+    //editsFeed.close()
+    //clearInterval(loopID)
+    //clearInterval(loopSubtitle)
+    clearInterval(loopGauge)
+
+
+    let tbody = document.querySelector("#nya");
+    tbody.innerHTML = "";
+
+    summon(id)
+
+
+
+
+
+    var newDiv = document.createElement("div");
+    newDiv.id = "infos";
+    tbody.appendChild(newDiv);
+
+    isInfoMode = true;
+    currentInfo = id;
+
+
+     let inp = document.querySelector("#suicchi");
+     inp.innerHTML = "Displaying "+currentInfo + ' recent changes | <a href="javascript:void(0)" onclick="backToHome()">back</a>'
+}
+
+
+
+
+function subtitleUpdater(){
+      var gaugeNodes = document.getElementsByClassName('gauge');
 
 
     for(var i=0; i<gaugeNodes.length; i++) {
@@ -503,8 +615,11 @@ setInterval(() => {
     }
 
 
+    if (isInfoMode){
+        showInfoz(currentInfo)
+    }
 
-    }, 1000);
+}
 
 
 function sortDivs() {
